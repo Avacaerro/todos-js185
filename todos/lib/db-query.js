@@ -1,6 +1,7 @@
 "use strict";
 
-let { Client } = require("pg");
+const config = require("./config");
+const { Client } = require("pg");
 
 const logQuery = (statement, parameters) => {
   let timeStamp = new Date();
@@ -8,9 +9,16 @@ const logQuery = (statement, parameters) => {
   console.log(formattedTimeStamp, statement, parameters);
 };
 
+const isProduction = (config.NODE_ENV === "production");
+const CONNECTION = {
+  connectionString: config.DATABASE_URL,
+  //ssl: isProduction - issue with update to pg8
+  ssl: { rejectUnauthorized: false },
+};
+
 module.exports = {
   async dbQuery(statement, ...parameters) {
-    let client = new Client({ database: "todo-lists" });
+    let client = new Client(CONNECTION);
 
     await client.connect();
     logQuery(statement, parameters);
